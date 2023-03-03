@@ -22,6 +22,7 @@ module.exports = {
       'no-underscore-dangle': 'off',
       'no-console': 'off',
       'no-shadow': 'off',
+      'class-methods-use-this': 'off',
       'no-restricted-syntax': [
         'error',
         'LabeledStatement',
