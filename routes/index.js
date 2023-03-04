@@ -20,5 +20,9 @@ router.get('/connect', (req, res) => authController.getConnect(req, res));
 router.get('/disconnect', (req, res) => authController.getDisconnect(req, res));
 // Upolad a new file
 router.post('/files', (req, res) => filesController.postUpload(req, res));
+// Get a file based on id
+router.get('/files/:id', (req, res) => filesController.getShow(req, res));
+// Get all files based on a folder Id
+router.get('/files', (req, res) => filesController.getIndex(req, res));
 
 export default router;
