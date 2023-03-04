@@ -1,58 +1,52 @@
 import redis from 'redis';
 
-
 class RedisClient {
-	constructor() {
-		this.client = redis.createClient();
-		this.client.on("error", (err) =>
-			console.error("Error occurred while connecting to Redis:", err)
-		);
-		this.client.connect
-	}
+  constructor() {
+    this.client = redis.createClient();
 
-	isAlive () {
-		
-		//return this.client && this.client.isReady === "ready";
-		return this.client.connected;
-		
-	}
+    this.client.on('error', (err) => console.error('Error occurred while connecting to Redis:', err));
+  }
 
-	async get (key) {
-		return new Promise((resolve, reject) => {
-			this.client.get(key, (err, value) => {
-				if (err) {
-					reject(err);
+  isAlive() {
+    // return this.client && this.client.readyState === "ready";
+    return this.client.connected;
+  }
 
-				} else {
-					resolve(value);
-				}
-			});
-		});
-	}
+  async get(key) {
+    return new Promise((resolve, reject) => {
+      this.client.get(key, (err, value) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(value);
+        }
+      });
+    });
+  }
 
-	async set (key, value, duration) {
-		return new Promise((resolve, reject) => {
-			this.client.set(key, value, 'EX', duration, (err) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve()
-				}
-			});
-		})
-	}
+  async set(key, value, duration) {
+    return new Promise((resolve, reject) => {
+      this.client.set(key, value, 'EX', duration, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
 
-	async del (key) {
-		return new Promise((resolve, reject) => {
-			this.client.del(key, (err) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve();
-				}
-			});
-		})
-	}
+  async del(key) {
+    return new Promise((resolve, reject) => {
+      this.client.del(key, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
 }
-const redisclient = new RedisClient();
-module.exports = redisclient;
+const redisClient = new RedisClient();
+module.exports = redisClient;
