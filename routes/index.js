@@ -24,5 +24,8 @@ router.post('/files', (req, res) => filesController.postUpload(req, res));
 router.get('/files/:id', (req, res) => filesController.getShow(req, res));
 // Get all files based on a folder Id
 router.get('/files', (req, res) => filesController.getIndex(req, res));
-
+// change public status of  to true
+router.put('/files/:id/publish', (req, res) => filesController.putPublish(req, res));
+// change public status of  to false
+router.put('/files/:id/unpublish', (req, res) => filesController.putUnpublish(req, res));
 export default router;
