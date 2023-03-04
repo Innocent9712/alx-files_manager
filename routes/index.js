@@ -2,6 +2,7 @@ import express from 'express';
 import appController from '../controller/AppController';
 import userController from '../controller/UsersController';
 import authController from '../controller/AuthController';
+import filesController from '../controller/FilesController';
 
 const router = express.Router();
 
@@ -17,5 +18,7 @@ router.get('/users/me', (req, res) => userController.getMe(req, res));
 router.get('/connect', (req, res) => authController.getConnect(req, res));
 // Disconnect user and remove session
 router.get('/disconnect', (req, res) => authController.getDisconnect(req, res));
+// Upolad a new file
+router.post('/files', (req, res) => filesController.postUpload(req, res));
 
 export default router;

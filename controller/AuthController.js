@@ -17,7 +17,7 @@ class AuthController {
     const randomString = uuidv4();
     const key = `auth_${randomString}`;
     // Store the user id in redis store using key as key
-    await redisClient.set(key, user._id, 86400);
+    await redisClient.set(key, user._id.toString(), 86400);
     return res.status(200).send({ token: randomString });
   }
 
