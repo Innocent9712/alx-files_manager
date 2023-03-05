@@ -2,33 +2,32 @@
 
 import { MongoClient } from 'mongodb';
 
-
 class DBClient {
   constructor() {
     const {
-		DB_HOST = "127.0.0.1",
-		DB_PORT = 27017,
-		DB_DATABASE = "files_manager"
-	} = process.env;
-    
+      DB_HOST = '127.0.0.1',
+      DB_PORT = 27017,
+      DB_DATABASE = 'files_manager',
+    } = process.env;
+
     const url = `mongodb://${DB_HOST}:${DB_PORT}`;
 
     this.client = MongoClient(url, {
-		useUnifiedTopology: true,
-		useNewUrlParser: true,
-		// family: 4
-	});
-    
-    this.client.connect().catch((error) => {
-      console.error("Error occurred while connecting to MongoDB:", error);
+      useUnifiedTopology: true,
+      useNewUrlParser: true,
+      // family: 4
     });
 
-	  this.db = this.client.db(DB_DATABASE);
+    this.client.connect().catch((error) => {
+      console.error('Error occurred while connecting to MongoDB:', error);
+    });
+
+    this.db = this.client.db(DB_DATABASE);
   }
 
-  async isAlive () {
-		return !!this.client && !!this.client.topology && this.client.topology.isConnected();
-		//return this.client.isConnected();
+  async isAlive() {
+    return !!this.client && !!this.client.topology && this.client.topology.isConnected();
+    // return this.client.isConnected();
   }
 
   async nbUsers() {
