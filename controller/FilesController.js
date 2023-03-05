@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+import mime from 'mime-types';
 
 class FilesController {
 	constructor() {
@@ -144,15 +145,15 @@ class FilesController {
 		return res.status(200).send(file);
 	}
 
-	async getFile(req, res, next) {
+	async getFile(req, res) {
     try {
       const tokenHeader = req.headers["x-token"];
+      
       const userId = await redisClient.get(`auth_${tokenHeader}`);
       const user = await dbClient.db
         .collection("users")
         .findOne({ _id: new ObjectId(userId) });
       
-      if (!user) return res.status(401).send({ error: "Unauthorized" });
       const { id } = req.params;
 
       const file = await dbClient.db
@@ -163,9 +164,11 @@ class FilesController {
 				return res.status(404).json({ error: "Not found" });
       }
       
-			if (!file.isPublic && user._id.toString() !== req.user.id) {
+			if (!file.isPublic && (user?._id.toString() !== file.userId || !tokenHeader)) {
 				return res.status(404).json({ error: "Not authorized" });
-			}
+      }
+
+      
 			if (file.type === "folder") {
 				return res
 					.status(400)
@@ -174,9 +177,9 @@ class FilesController {
 			const contentType = mime.lookup(file.name);
 
 			res.setHeader("Content-Type", contentType);
-			fs.createReadStream(filePath).pipe(res);
+			fs.createReadStream(file.localPath).pipe(res);
 		} catch (err) {
-			next(err);
+			return res.status(500).json({ error: "Internal server error" });
 		}
   }
   
@@ -184,3 +187,6 @@ class FilesController {
 
 const filesController = new FilesController();
 export default filesController;
+
+// "X-Token: 12d212ee-c1de-43f7-86f5-a017a72d088b"
+// files/64046e9d387cbac02c1773b7/data
