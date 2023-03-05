@@ -155,7 +155,6 @@ class FilesController {
         .findOne({ _id: new ObjectId(userId) });
       
       const { id } = req.params;
-
       const file = await dbClient.db
 			.collection("files")
 			.findOne({ _id: new ObjectId(id) });
