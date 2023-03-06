@@ -1,9 +1,13 @@
+const Bull = require("bull");
+const fileQueue = new Bull("fileQueue");
+
 import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 import mime from 'mime-types';
+
 
 class FilesController {
 	constructor() {
@@ -18,6 +22,7 @@ class FilesController {
 			.collection("users")
 			.findOne({ _id: new ObjectId(userId) });
 		if (!user) return res.status(401).send({ error: "Unauthorized" });
+
 		const { name, type, parentId, isPublic, data } = req.body;
 		const acceptedTypes = ["folder", "file", "image"];
 		if (!name) return res.status(401).send({ error: "Missing name" });
@@ -48,8 +53,17 @@ class FilesController {
 				// createdAt: new Date(),
 				// updatedAt: new Date(),
 			});
+
+			// Adds a job to the fileQueue from folder files
+			const jobData = {
+				fileId: newFolder.ops[0]._id.toString(),
+				userId: user._id.toString()
+			};
+			await fileQueue.add(jobData);
+
 			return res.status(201).send(newFolder.ops[0]);
 		}
+
 		const path = `${this.FOLDER_PATH}/${uuidv4()}`;
 		/* eslint-disable no-undef */
 		// const decodedData = atob(data);
@@ -63,8 +77,21 @@ class FilesController {
 			isPublic: isPublic || false,
 			parentId: parentId || 0,
 			localPath: path,
-			userId: user._id.toString()
+			userId: user._id.toString(),
+			mimetype
 		});
+
+		// Adds a job to the fileQueue for newfile
+		try {
+			const jobData = {
+				fileId: newFile.ops[0]._id.toString(),
+				userId: user._id.toString()
+			};
+			await fileQueue.add(jobData);
+		} catch (error) {
+			console.log(error);
+		}
+
 		return res.status(201).send(newFile.ops[0]);
 	}
 
@@ -145,6 +172,7 @@ class FilesController {
 		return res.status(200).send(file);
 	}
 
+
 	async getFile(req, res) {
     try {
       const tokenHeader = req.headers["x-token"];
@@ -181,7 +209,7 @@ class FilesController {
 			return res.status(500).json({ error: "Internal server error" });
 		}
   }
-  
+
 }
 
 const filesController = new FilesController();
@@ -189,3 +217,9 @@ export default filesController;
 
 // "X-Token: 12d212ee-c1de-43f7-86f5-a017a72d088b"
 // files/64046e9d387cbac02c1773b7/data
+
+// if (!file.isPublic && (user?._id.toString() !== file.userId || !tokenHeader)) {
+// 				return res.status(404).json({ error: "Not authorized" });
+//       }
+
+
