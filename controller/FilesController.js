@@ -1,12 +1,13 @@
-import { ObjectId } from "mongodb";
-import { v4 as uuidv4 } from "uuid";
-import fs from "fs";
-import redisClient from "../utils/redis";
-import dbClient from "../utils/db";
-
 const Bull = require("bull");
-
 const fileQueue = new Bull("fileQueue");
+
+import { ObjectId } from 'mongodb';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import redisClient from '../utils/redis';
+import dbClient from '../utils/db';
+import mime from 'mime-types';
+
 
 class FilesController {
 	constructor() {
@@ -170,6 +171,45 @@ class FilesController {
 			.updateOne({ _id: new ObjectId(id) }, { $set: file });
 		return res.status(200).send(file);
 	}
+
+
+	async getFile(req, res) {
+    try {
+      const tokenHeader = req.headers["x-token"];
+      
+      const userId = await redisClient.get(`auth_${tokenHeader}`);
+      const user = await dbClient.db
+        .collection("users")
+        .findOne({ _id: new ObjectId(userId) });
+      
+      const { id } = req.params;
+      const file = await dbClient.db
+			.collection("files")
+			.findOne({ _id: new ObjectId(id) });
+			
+			if (!file) {
+				return res.status(404).json({ error: "Not found" });
+      }
+      
+			if (!file.isPublic && (user?._id.toString() !== file.userId || !tokenHeader)) {
+				return res.status(404).json({ error: "Not authorized" });
+      }
+
+      
+			if (file.type === "folder") {
+				return res
+					.status(400)
+					.json({ error: "A folder doesn't have content" });
+			}
+			const contentType = mime.lookup(file.name);
+
+			res.setHeader("Content-Type", contentType);
+			fs.createReadStream(file.localPath).pipe(res);
+		} catch (err) {
+			return res.status(500).json({ error: "Internal server error" });
+		}
+  }
+
 }
 
 const filesController = new FilesController();
@@ -181,3 +221,5 @@ export default filesController;
 // if (!file.isPublic && (user?._id.toString() !== file.userId || !tokenHeader)) {
 // 				return res.status(404).json({ error: "Not authorized" });
 //       }
+
+

@@ -28,4 +28,7 @@ router.get('/files', (req, res) => filesController.getIndex(req, res));
 router.put('/files/:id/publish', (req, res) => filesController.putPublish(req, res));
 // change public status of  to false
 router.put('/files/:id/unpublish', (req, res) => filesController.putUnpublish(req, res));
+
+router.get("/files/:id/data", (req, res) => filesController.getFile(req, res));
+//  return the content of the file document based on the ID
 export default router;
