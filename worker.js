@@ -1,13 +1,9 @@
-const { MongoClient, ObjectId } = require("mongodb");
+import dbClient from "../utils/db";
 const { createCanvas, loadImage } = require("canvas");
 const thumbnail = require("image-thumbnail");
 
-const mongoClient = new MongoClient(process.env.DB_HOST, {
-	useNewUrlParser: true,
-	useUnifiedTopology: true
-});
 
-mongoClient.connect((err) => {
+dbClient.connect((err) => {
 	if (err) throw err;
 
 	const fileQueue = new Bull("fileQueue");
@@ -16,15 +12,13 @@ mongoClient.connect((err) => {
 		const { fileId, userId } = job.data;
 
 		if (!fileId) throw new Error("Missing fileId");
-		if (!userId) throw new Error("Missing userId");
+    if (!userId) throw new Error("Missing userId");
+    
+    const file = await dbClient.db
+		.collection("files")
+		.findOne({ _id: new ObjectId(fileId), userId: userId });
 
-		const db = mongoClient.db(process.env.DB_NAME);
-		const filesCollection = db.collection("files");
-
-		const file = await filesCollection.findOne({
-			_id: new ObjectId(fileId),
-			userId: userId
-		});
+	
 
 		if (!file) throw new Error("File not found");
 
