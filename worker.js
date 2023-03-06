@@ -1,24 +1,22 @@
-import dbClient from "../utils/db";
+import dbClient from "./utils/db";
 const { createCanvas, loadImage } = require("canvas");
 const thumbnail = require("image-thumbnail");
+import Bull from "bull";
 
+const fileQueue = new Bull("fileQueue");
 
 dbClient.connect((err) => {
 	if (err) throw err;
-
-	const fileQueue = new Bull("fileQueue");
 
 	fileQueue.process(async (job) => {
 		const { fileId, userId } = job.data;
 
 		if (!fileId) throw new Error("Missing fileId");
-    if (!userId) throw new Error("Missing userId");
-    
-    const file = await dbClient.db
-		.collection("files")
-		.findOne({ _id: new ObjectId(fileId), userId: userId });
+		if (!userId) throw new Error("Missing userId");
 
-	
+		const file = await dbClient.db
+			.collection("files")
+			.findOne({ _id: new ObjectId(fileId), userId: userId });
 
 		if (!file) throw new Error("File not found");
 
@@ -43,3 +41,5 @@ dbClient.connect((err) => {
 		}
 	});
 });
+
+export default fileQueue;

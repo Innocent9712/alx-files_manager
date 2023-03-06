@@ -174,3 +174,10 @@ class FilesController {
 
 const filesController = new FilesController();
 export default filesController;
+
+// "X-Token: 12d212ee-c1de-43f7-86f5-a017a72d088b"
+// files/64046e9d387cbac02c1773b7/data
+
+// if (!file.isPublic && (user?._id.toString() !== file.userId || !tokenHeader)) {
+// 				return res.status(404).json({ error: "Not authorized" });
+//       }
